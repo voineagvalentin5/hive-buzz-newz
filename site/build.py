@@ -130,9 +130,13 @@ def render(d, nav):
         for c in d.get("watch_calendar", []))
     page = f'''<!doctype html><html lang="en"><head><meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>Hive Buzz Newz · {e(d["date"])}</title><link rel="stylesheet" href="/style.css"></head><body>
-    {CHL_NAV}<header><div class="wrap"><p class="kicker">Codex Hive</p><h1>Hive Buzz <span>Newz</span></h1>
-    <p class="date">{fmt(d["date"])}</p></div></header>
+    <title>Hive Buzz Newz · {e(d["date"])}</title><link rel="stylesheet" href="/style.css">
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon-192.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"></head><body>
+    {CHL_NAV}<header><div class="wrap brand"><a class="brand-mark" href="/"><img src="/assets/hive-buzz-icon-320.png" srcset="/assets/hive-buzz-icon-320.png 320w, /assets/hive-buzz-icon.png 640w" sizes="(max-width:600px) 56px, 80px" width="80" height="80" alt="Hive Buzz" decoding="async"></a><div class="brand-text"><p class="kicker"><a href="https://codex-hive.com">A Codex Hive division</a></p><h1>Hive Buzz <span>Newz</span></h1>
+    <p class="date">{fmt(d["date"])}</p></div></div></header>
     <div class="disclosure wrap"><strong>AI-written.</strong> {e(d.get("ai_disclosure"))}</div>
     <main class="wrap">
     <section><h2>Today's stories</h2><p class="legend"><span class="badge confirmed">Confirmed</span> reported by established outlets · <span class="badge developing">Developing</span> details still emerging</p>{"".join(out)}</section>
@@ -157,14 +161,30 @@ def main():
     items="".join(f'<li><time>{fmt(x,"%b %-d")}</time><span><a href="/{x}/">{fmt(x)}</a></span></li>' for x in reversed(days))
     arch=f'''<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Hive Buzz Newz · Archive</title><link rel="stylesheet" href="/style.css"></head><body>
-{CHL_NAV}<header><div class="wrap"><p class="kicker">Codex Hive</p><h1>Hive Buzz <span>Newz</span></h1>
-<p class="date">Archive · every day we published, newest first</p></div></header>
+<title>Hive Buzz Newz · Archive</title><link rel="stylesheet" href="/style.css">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon-192.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"></head><body>
+{CHL_NAV}<header><div class="wrap brand"><a class="brand-mark" href="/"><img src="/assets/hive-buzz-icon-320.png" srcset="/assets/hive-buzz-icon-320.png 320w, /assets/hive-buzz-icon.png 640w" sizes="(max-width:600px) 56px, 80px" width="80" height="80" alt="Hive Buzz" decoding="async"></a><div class="brand-text"><p class="kicker"><a href="https://codex-hive.com">A Codex Hive division</a></p><h1>Hive Buzz <span>Newz</span></h1>
+<p class="date">Archive · every day we published, newest first</p></div></div></header>
 <main class="wrap"><section><h2>All days</h2><ul class="cal">{items}</ul>
 <p class="legend"><a href="/">← Today's edition</a></p></section></main>
 <footer class="wrap"><p>Hive Buzz Newz · codex-hive.com</p></footer></body></html>'''
     os.makedirs(os.path.join(OUT,"archive"),exist_ok=True)
     open(os.path.join(OUT,"archive","index.html"),"w").write(arch)
     shutil.copy(os.path.join(HERE,"style.css"),os.path.join(OUT,"style.css"))
+    # Brand assets live at the site root (next to this file's parent: the published tree).
+    # When this script is used as a renderer only, the caller already has assets in place.
+    # When main() writes a private out dir, copy them so favicons and the masthead icon resolve.
+    root = os.path.dirname(HERE)
+    def _copy_asset(src, dest):
+        if os.path.isfile(src):
+            os.makedirs(os.path.dirname(dest), exist_ok=True)
+            shutil.copy(src, dest)
+    _copy_asset(os.path.join(root,"favicon.ico"), os.path.join(OUT,"favicon.ico"))
+    _copy_asset(os.path.join(root,"apple-touch-icon.png"), os.path.join(OUT,"apple-touch-icon.png"))
+    for name in ("hive-buzz-icon.png","hive-buzz-icon-320.png","favicon-32.png","favicon-192.png"):
+        _copy_asset(os.path.join(root,"assets",name), os.path.join(OUT,"assets",name))
     print("built",len(days),"day(s); latest",days[-1],"->",OUT)
 main()

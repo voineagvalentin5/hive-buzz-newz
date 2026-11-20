@@ -2,8 +2,14 @@
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
 background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='98'%3E%3Cpath d='M28 66L0 50V16L28 0l28 16v34L28 66zm0 32V66' fill='none' stroke='%23e0a526' stroke-opacity='.06' stroke-width='1.2'/%3E%3C/svg%3E")}
 .wrap{max-width:1100px;margin:0 auto;padding:0 20px}
-header{border-bottom:2px solid var(--gold2);padding:40px 0 24px;background:linear-gradient(180deg,rgba(224,165,38,.08),transparent)}
-.kicker{margin:0;color:var(--gold);letter-spacing:.25em;text-transform:uppercase;font-size:.8rem;font-weight:700}
+header{border-bottom:2px solid var(--gold2);padding:32px 0 24px;background:linear-gradient(180deg,rgba(224,165,38,.08),transparent)}
+.brand{display:flex;align-items:center;gap:20px}
+.brand-mark{flex:0 0 auto;display:block;line-height:0;border-radius:0}
+.brand-mark img{display:block;width:80px;height:80px;background:transparent}
+.brand-text{min-width:0}
+.kicker{margin:0;color:var(--gold);letter-spacing:.12em;text-transform:uppercase;font-size:.8rem;font-weight:700}
+.kicker a{color:inherit;text-decoration:none}
+.kicker a:hover{color:#ffd36b}
 h1{margin:4px 0;font-size:clamp(2rem,6vw,3.2rem);letter-spacing:.02em}h1 span{color:var(--gold)}
 .date{margin:0;color:var(--mut)}
 .disclosure{margin-top:20px;padding:12px 16px!important;border:1px solid rgba(224,165,38,.4);border-radius:10px;background:rgba(224,165,38,.07);font-size:.95rem}
@@ -26,5 +32,5 @@ h2{color:var(--gold);border-bottom:1px solid #2a2b2f;padding-bottom:8px;margin-t
 .cal{list-style:none;padding:0;margin:0}.cal li{display:flex;gap:16px;padding:10px 0;border-bottom:1px solid #222}
 .cal time{min-width:64px;color:var(--gold);font-weight:700}
 footer{color:var(--mut);font-size:.85rem;padding:40px 20px}
-@media(max-width:600px){.grid{grid-template-columns:1fr}.rumors{padding:4px 12px 14px}}
+@media(max-width:600px){.grid{grid-template-columns:1fr}.rumors{padding:4px 12px 14px}header{padding:22px 0 18px}.brand{gap:14px}.brand-mark img{width:56px;height:56px}}
 .days{border-top:1px solid #2a2b2f;margin-bottom:12px}.days h2{margin-top:20px;font-size:1.1rem}.days p{color:var(--tx)}.off{color:#55534e}
