@@ -15,6 +15,13 @@ def link(url, text):
 def fmt(d, f="%A, %B %-d, %Y"):
     return datetime.date.fromisoformat(d).strftime(f)
 
+# Same Google Analytics tag as codex-hive.com. Required on every edition and the archive.
+GA_TAG = (
+    '<script async src="https://www.googletagmanager.com/gtag/js?id=G-DW4D6JPPB4"></script>'
+    "<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}"
+    "gtag('js',new Date());gtag('config','G-DW4D6JPPB4');</script>"
+)
+
 # Codex Hive Labs top bar. Required on every edition and the archive.
 CHL_NAV = r'''<!-- chl-lab-nav -->
 <style>
@@ -134,7 +141,7 @@ def render(d, nav):
     <link rel="icon" href="/favicon.ico" sizes="any">
     <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png">
     <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon-192.png">
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"></head><body>
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">{GA_TAG}</head><body>
     {CHL_NAV}<header><div class="wrap brand"><a class="brand-mark" href="/"><img src="/assets/hive-buzz-icon-320.png" srcset="/assets/hive-buzz-icon-320.png 320w, /assets/hive-buzz-icon.png 640w" sizes="(max-width:600px) 56px, 80px" width="80" height="80" alt="Hive Buzz" decoding="async"></a><div class="brand-text"><p class="kicker"><a href="https://codex-hive.com">A Codex Hive division</a></p><h1>Hive Buzz <span>Newz</span></h1>
     <p class="date">{fmt(d["date"])}</p></div></div></header>
     <div class="disclosure wrap"><strong>AI-written.</strong> {e(d.get("ai_disclosure"))}</div>
@@ -165,7 +172,7 @@ def main():
 <link rel="icon" href="/favicon.ico" sizes="any">
 <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon-192.png">
-<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"></head><body>
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">{GA_TAG}</head><body>
 {CHL_NAV}<header><div class="wrap brand"><a class="brand-mark" href="/"><img src="/assets/hive-buzz-icon-320.png" srcset="/assets/hive-buzz-icon-320.png 320w, /assets/hive-buzz-icon.png 640w" sizes="(max-width:600px) 56px, 80px" width="80" height="80" alt="Hive Buzz" decoding="async"></a><div class="brand-text"><p class="kicker"><a href="https://codex-hive.com">A Codex Hive division</a></p><h1>Hive Buzz <span>Newz</span></h1>
 <p class="date">Archive · every day we published, newest first</p></div></div></header>
 <main class="wrap"><section><h2>All days</h2><ul class="cal">{items}</ul>
