@@ -119,6 +119,8 @@ body.newz-edition {
 .archive-chip time { display: block; color: var(--tx); font-size: .73rem; font-weight: 400; white-space: nowrap; }
 .archive-chip[aria-current], .archive-chip:hover { border-color: #f5cf85; background: linear-gradient(#ffe3a6, #d9a34e); color: #23170a; }
 .archive-chip[aria-current] time, .archive-chip:hover time { color: inherit; }
+.archive-chip strong { color: var(--archive-score-color, #f3d18c); }
+.archive-chip[aria-current] strong, .archive-chip:hover strong { color: #572c16; color: color-mix(in srgb, var(--archive-score-color, #f3d18c) 30%, #231008); }
 .archive-arrow { flex: 0 0 auto; min-width: 28px; min-height: 38px; border: 1px solid #786449; border-radius: 6px; background: #17212a; color: var(--gold); cursor: pointer; font: 400 1.45rem/1 var(--serif); }
 .archive-arrow:disabled { opacity: .45; cursor: default; }
 .archive-all { white-space: nowrap; font-size: .77rem; }

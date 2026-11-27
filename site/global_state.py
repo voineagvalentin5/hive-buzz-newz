@@ -156,7 +156,7 @@ def chart_view(records, name):
 
 def trend_chart(records):
     if not records:
-        return """<details class="dash-panel" open><summary class="panel-summary">
+        return """<details class="dash-panel"><summary class="panel-summary">
           <span>World Temperature</span></summary><p class="panel-empty">No historical readings yet.</p></details>"""
     latest = calendar_date.fromisoformat(records[-1]["date"])
     views = [chart_view(records, "all")]
@@ -170,7 +170,7 @@ def trend_chart(records):
         day = f'<a href="/{date}/index.html">{day}</a>' if row["edition"] else day
         basis = "Published edition" if row["edition"] else "Reconstructed"
         rows.append(f'<tr id="reading-{date}"><th scope="row">{day}</th><td>{row["score"]}</td><td>{basis}</td></tr>')
-    return f"""<details class="dash-panel trend-panel" id="temperature-trend" open>
+    return f"""<details class="dash-panel trend-panel" id="temperature-trend">
       <summary class="panel-summary"><span><strong>World Temperature</strong><span class="panel-subtitle"> · Historical trend</span></span></summary>
       <div class="trend-body">
         <div class="trend-ranges" role="group" aria-label="History range" hidden>
@@ -187,6 +187,23 @@ def trend_chart(records):
       </div></details>"""
 
 
+def archive_score_color(score):
+    stops = (
+        (0, (150, 208, 255)),
+        (20, (143, 222, 184)),
+        (35, (245, 211, 124)),
+        (43, (255, 173, 105)),
+        (50, (255, 130, 123)),
+        (65, (255, 108, 117)),
+        (100, (255, 113, 142)),
+    )
+    for (low, start), (high, end) in zip(stops, stops[1:]):
+        if score <= high:
+            fraction = (score - low) / (high - low)
+            channels = (round(a + (b - a) * fraction) for a, b in zip(start, end))
+            return "#" + "".join(f"{channel:02x}" for channel in channels)
+
+
 def archive_strip(records, current):
     chips = []
     for row in records:
@@ -199,12 +216,13 @@ def archive_strip(records, current):
             f'<li><a class="archive-chip" href="{link}" data-reading="{iso}" data-day="{display_day(iso)}" '
             f'data-basis="{basis}" data-score="{row["score"]}" data-level="{temperature_label(row["score"])}"'
             f'{active} aria-label="{display_day(iso)}, {row["score"]} out of 100, {basis}">'
-            f'<time datetime="{iso}"><span>{day:%b}</span> {day.day}</time><strong>{row["score"]}</strong></a></li>'
+            f'<time datetime="{iso}"><span>{day:%b}</span> {day.day}</time>'
+            f'<strong style="--archive-score-color:{archive_score_color(row["score"])}">{row["score"]}</strong></a></li>'
         )
     dates = (f'<button type="button" class="archive-arrow" data-scroll="-1" aria-label="Show earlier dates" hidden>‹</button>'
              f'<ol class="archive-chips">{"".join(chips)}</ol>'
              f'<button type="button" class="archive-arrow" data-scroll="1" aria-label="Show later dates" hidden>›</button>') if chips else ""
-    return f"""<details class="dash-panel archive-panel" id="edition-archive" open>
+    return f"""<details class="dash-panel archive-panel" id="edition-archive">
       <summary class="panel-summary"><span><strong>Archive</strong><span class="panel-subtitle"> · Daily editions</span>
       <small>{date_range(records)}</small></span></summary>
       <div class="archive-body">{dates}<a class="archive-all" href="/archive/index.html">All editions</a></div>
@@ -226,7 +244,7 @@ def feature_signals(signals):
             '<span class="signal-arrow" aria-hidden="true"></span></a></li>'
         )
     body = f'<ul>{"".join(items)}</ul>' if items else '<p class="panel-empty">No featured signals for this edition.</p>'
-    return f"""<details class="dash-panel state-signals" id="key-signals" open>
+    return f"""<details class="dash-panel state-signals" id="key-signals">
       <summary class="panel-summary"><span>Key signals</span></summary>{body}</details>"""
 
 

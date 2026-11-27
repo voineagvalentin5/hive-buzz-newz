@@ -89,6 +89,7 @@ if (trend && edition && selected) {
 const strip = archive?.querySelector(".archive-chips");
 if (strip) {
   const arrows = [...archive.querySelectorAll("[data-scroll]")];
+  let positioned = false;
 
   function updateArrows() {
     const maximum = strip.scrollWidth - strip.clientWidth;
@@ -101,6 +102,10 @@ if (strip) {
     if (strip.clientWidth && strip.scrollWidth > strip.clientWidth + 1) {
       arrows.forEach(arrow => { arrow.hidden = false; });
     }
+    if (strip.clientWidth && !positioned) {
+      strip.scrollLeft = strip.scrollWidth;
+      positioned = true;
+    }
     updateArrows();
   }
 
@@ -111,7 +116,6 @@ if (strip) {
   archive.addEventListener("toggle", sizeStrip);
   window.addEventListener("resize", sizeStrip);
   sizeStrip();
-  strip.scrollLeft = strip.scrollWidth;
 }
 
 const nav = [...document.querySelectorAll(".edition-masthead nav a")];

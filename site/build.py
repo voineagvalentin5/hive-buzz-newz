@@ -90,7 +90,7 @@ def render(d, nav):
     page = f'''<!doctype html><html lang="en"><head><meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Hive Buzz Newz · {e(d["date"])}</title><link rel="stylesheet" href="/style.css">
-    <link rel="stylesheet" href="/global-state.css?v=2"><script src="/global-state.js?v=2" defer></script>
+    <link rel="stylesheet" href="/global-state.css?v=3"><script src="/global-state.js?v=3" defer></script>
     <link rel="icon" href="/favicon.ico" sizes="any">
     <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png">
     <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon-192.png">
@@ -99,9 +99,9 @@ def render(d, nav):
     <main class="wrap">
     {render_global_state(d["date"], signals)}
     <p class="disclosure"><strong>AI-written.</strong> {e(d.get("ai_disclosure"))}</p>
-    <details class="dash-panel news-panel" id="stories" open><summary class="panel-summary"><h2>Today's stories</h2></summary><div class="news-body"><p class="legend"><span class="badge confirmed">Confirmed</span> reported by established outlets · <span class="badge developing">Developing</span> details still emerging</p>{"".join(out)}</div></details>
-    <details class="dash-panel news-panel rumor-panel" id="rumors" open><summary class="panel-summary"><h2>Hive Rumors</h2></summary><div class="news-body"><p class="legend">Unverified claims seen online. Listed for transparency, not as fact, and updated as Confirmed or Debunked.</p><div class="grid">{rum}</div></div></details>
-    <details class="dash-panel news-panel" id="watch" open><summary class="panel-summary"><h2>What to watch</h2></summary><div class="news-body"><ul class="cal">{cal}</ul></div></details>
+    <details class="dash-panel news-panel" id="stories"><summary class="panel-summary"><h2>Today's stories</h2></summary><div class="news-body"><p class="legend"><span class="badge confirmed">Confirmed</span> reported by established outlets · <span class="badge developing">Developing</span> details still emerging</p>{"".join(out)}</div></details>
+    <details class="dash-panel news-panel rumor-panel" id="rumors"><summary class="panel-summary"><h2>Hive Rumors</h2></summary><div class="news-body"><p class="legend">Unverified claims seen online. Listed for transparency, not as fact, and updated as Confirmed or Debunked.</p><div class="grid">{rum}</div></div></details>
+    <details class="dash-panel news-panel" id="watch"><summary class="panel-summary"><h2>What to watch</h2></summary><div class="news-body"><ul class="cal">{cal}</ul></div></details>
     </main><footer class="wrap">{nav}<p>Hive Buzz Newz · codex-hive.com</p></footer></body></html>'''
     return page
 
