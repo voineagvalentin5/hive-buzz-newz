@@ -2,7 +2,6 @@
 
 import html
 import json
-import math
 from datetime import date as calendar_date
 from pathlib import Path
 
@@ -21,6 +20,14 @@ BANDS = (
     (60, "Hot", "#e4925d"),
     (80, "Boiling", "#d86e5d"),
 )
+CHANNEL_ICONS = {
+    "conflict": '<svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3"/><path d="M5 20v-2a7 7 0 0 1 14 0v2M3 16a4 4 0 0 1 3-4m15 4a4 4 0 0 0-3-4"/></svg>',
+    "economy": '<svg viewBox="0 0 24 24"><ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v12c0 4 16 4 16 0V6M4 12c0 4 16 4 16 0"/></svg>',
+    "environment": '<svg viewBox="0 0 24 24"><path d="M7 17H6a4 4 0 1 1 1.6-7.7A5 5 0 0 1 17 10a3.5 3.5 0 1 1 1 7h-1m-4-4-4 6h4l-2 4"/></svg>',
+    "institutions": '<svg viewBox="0 0 24 24"><path d="m3 9 9-6 9 6H3Zm2 11h14M7 9v11m5-11v11m5-11v11M3 22h18"/></svg>',
+    "technology": '<svg viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="2"/><path d="M9 9h6v6H9zM9 2v3m6-3v3m-6 14v3m6-3v3M2 9h3m-3 6h3m14-6h3m-3 6h3"/></svg>',
+    "health": '<svg viewBox="0 0 24 24"><path d="M12 21 4 13A5 5 0 0 1 12 7a5 5 0 0 1 8 6Z"/><path d="M6 12h4l2-3 2 5 2-2h2"/></svg>',
+}
 HERE = Path(__file__).parent
 
 
@@ -51,42 +58,6 @@ def temperature_series(through):
     return [entry for entry in records if entry["date"] <= through]
 
 
-def dial(score):
-    center_x, center_y, radius = 150, 129, 109
-    path = 'M41 129 A109 109 0 0 1 259 129'
-    arcs = []
-    for (start, _, color), end in zip(BANDS, [20, 40, 60, 80, 100]):
-        arcs.append(
-            f'<path d="{path}" pathLength="100" stroke="{color}" '
-            f'stroke-dasharray="0 {start} {end - start - .8} 101"/>'
-        )
-    ticks = []
-    for mark in range(0, 101, 5):
-        angle = math.pi * (1 - mark / 100)
-        start_radius = radius - (18 if mark % 25 == 0 else 14)
-        x1 = center_x + start_radius * math.cos(angle)
-        y1 = center_y - start_radius * math.sin(angle)
-        x2 = center_x + (radius - 10) * math.cos(angle)
-        y2 = center_y - (radius - 10) * math.sin(angle)
-        ticks.append(f'<path d="M{x1:.2f} {y1:.2f}L{x2:.2f} {y2:.2f}"/>')
-    needle = ""
-    if score is not None:
-        angle = math.pi * (1 - score / 100)
-        x = center_x + 88 * math.cos(angle)
-        y = center_y - 88 * math.sin(angle)
-        needle = (f'<path d="M150 129L{x:.2f} {y:.2f}" stroke="#f6e6bb" stroke-width="3" '
-                  'stroke-linecap="round"/><circle cx="150" cy="129" r="7" '
-                  'fill="#f6e6bb" stroke="#1c1711" stroke-width="3"/>')
-    return (
-        '<svg class="state-dial" viewBox="24 9 252 148" aria-hidden="true">'
-        f'<g fill="none" stroke-width="7" opacity="{1 if score is not None else .36}">'
-        + "".join(arcs) + '</g><g fill="none" stroke="#ae9d7b" opacity=".57">'
-        + "".join(ticks) + f'</g>{needle}'
-        '<g fill="#d1c5af" font-size="10" text-anchor="middle">'
-        '<text x="41" y="149">0</text><text x="259" y="149">100</text></g></svg>'
-    )
-
-
 def story_ids(signals):
     ids = {}
     for channel, entry in signals.items():
@@ -94,65 +65,169 @@ def story_ids(signals):
     return ids
 
 
-def trend_chart(records):
-    if len(records) < 2:
-        return ""
-    start = calendar_date.fromisoformat(records[0]["date"])
-    end = calendar_date.fromisoformat(records[-1]["date"])
-    points, markers, rows = [], [], []
-    for entry in records:
+def display_day(iso):
+    day = calendar_date.fromisoformat(iso)
+    return f"{day:%b} {day.day}"
+
+
+def temperature_label(score):
+    return next(label for minimum, label, _ in reversed(BANDS) if score >= minimum)
+
+
+def reading(score):
+    if score is None:
+        return '<div class="state-reading"><strong>—</strong><span>Awaiting reading</span></div>'
+    return (f'<div class="state-reading"><strong>{score}</strong><span> / 100</span>'
+            f'<span class="state-level">{temperature_label(score)}</span></div>')
+
+
+def gauge(score):
+    labels = "".join(
+        f'<span>{label}<small>{minimum}–{minimum + (20 if minimum == 80 else 19)}</small></span>'
+        for minimum, label, _ in BANDS
+    )
+    marker = f'<span class="scale-marker" style="--score:{score}%"></span>' if score is not None else ""
+    return f'<div class="state-scale"><div class="scale-labels">{labels}</div><div class="scale-track">{marker}</div></div>'
+
+
+def date_range(records):
+    if not records:
+        return "No readings yet"
+    first, last = (calendar_date.fromisoformat(records[i]["date"]) for i in (0, -1))
+    if first == last:
+        return f"{display_day(first.isoformat())}, {last.year}"
+    start = f"{display_day(first.isoformat())}, {first.year}" if first.year != last.year else display_day(first.isoformat())
+    return f"{start} – {display_day(last.isoformat())}, {last.year}"
+
+
+def chart_svg(records):
+    first, last = (calendar_date.fromisoformat(records[i]["date"]) for i in (0, -1))
+    left, right, top, bottom = 47, 930, 23, 258
+    height = bottom - top
+    duration = max(1, (last - first).days)
+    stride = max(1, (len(records) + 16) // 17)
+    points, dots, dates = [], [], []
+    mobile_dates = {0, len(records) // 2, len(records) - 1}
+    for index, entry in enumerate(records):
         day = calendar_date.fromisoformat(entry["date"])
         score = entry["score"]
-        x = 34 + (day - start).days / (end - start).days * 580
-        y = 113 - score
-        points.append(f"{x:.2f},{y}")
-        fill = "#e5bd79" if entry["edition"] else "#111820"
-        label = f"{day:%b} {day.day}"
-        markers.append(f'<circle cx="{x:.2f}" cy="{y}" r="3.5" fill="{fill}" stroke="#e5bd79" stroke-width="1.5"><title>{label}: {score}</title></circle>')
-        if entry["edition"]:
-            date_label = f'<a href="/{day}/index.html">{label}</a>'
-            source = "Published edition"
-        else:
-            date_label = label
-            source = "Reconstructed"
-        rows.append(f'<tr><th scope="row">{date_label}</th><td>{score}</td><td>{source}</td></tr>')
+        x = left + 10 + (right - left - 20) * (day - first).days / duration
+        y = bottom - height * score / 100
+        points.append(f"{x:.2f},{y:.2f}")
+        kind = "" if entry["edition"] else " trend-dot-open"
+        dots.append(f'<circle class="trend-dot{kind}" data-point="{day}" cx="{x:.2f}" cy="{y:.2f}" r="5">'
+                    f'<title>{display_day(str(day))}: {score}</title></circle>')
+        if index in mobile_dates or (index % stride == 0 and index < len(records) - stride):
+            milestone = " milestone" if index in mobile_dates else ""
+            edge = " first-day" if index == 0 else " last-day" if index == len(records) - 1 else ""
+            dates.append(f'<path d="M{x:.2f} {top}V{bottom}"/>'
+                         f'<text class="day-label{milestone}{edge}" x="{x:.2f}" y="283" text-anchor="middle">{display_day(str(day))}</text>')
     bands = "".join(
-        f'<rect x="34" y="{93 - minimum}" width="580" height="20" fill="{color}" opacity=".08"/>'
+        f'<rect x="{left}" y="{bottom - height * (minimum + 20) / 100:g}" '
+        f'width="{right-left}" height="{height/5:g}" fill="{color}" opacity=".22"/>'
         for minimum, _, color in BANDS
     )
     grid = "".join(
-        f'<path d="M34 {113 - value}H614" stroke="#59616a" stroke-opacity=".42"/>'
-        f'<text x="25" y="{117 - value}" text-anchor="end">{value}</text>'
-        for value in (0, 20, 40, 60, 80, 100)
+        f'<path d="M{left} {bottom - height * value / 100:g}H{right}"/>'
+        f'<text x="33" y="{bottom - height * value / 100 + 5:g}" text-anchor="end">{value}</text>'
+        for value in range(0, 101, 20)
     )
-    labels = [
-        (34, start, "start"), (324, start + (end - start) // 2, "middle"), (614, end, "end"),
-    ]
-    dates = "".join(f'<text x="{x}" y="133" text-anchor="{anchor}">{day:%b} {day.day}</text>'
-                    for x, day, anchor in labels)
-    return f"""
-    <section class="state-trend" id="temperature-trend" aria-labelledby="trend-title">
-      <div class="trend-heading">
-        <h3 id="trend-title">Temperature trend</h3>
-        <p>Method v1 · AI-calculated</p>
-      </div>
-      <svg class="trend-chart" viewBox="0 0 630 140" role="img" aria-labelledby="trend-summary">
-        <title id="trend-summary">World Temperature from {start:%b} {start.day} to {end:%b} {end.day}. Exact readings and source types are available in the daily readings table.</title>
-        {bands}
-        <g fill="#bcb6ab" font-size="12">{grid}{dates}</g>
-        <polyline points="{' '.join(points)}" fill="none" stroke="#e5bd79" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        {"".join(markers)}
-      </svg>
-      <div class="trend-foot">
-        <p class="trend-legend"><span><i class="trend-point" aria-hidden="true"></i> Published edition</span>
-        <span><i class="trend-point trend-point-open" aria-hidden="true"></i> Reconstructed</span></p>
+    x, y = points[-1].split(",")
+    label_offset = 56 if float(y) < 57 else 0
+    callout = (f'<g class="trend-callout" transform="translate({x} {y})">'
+               f'<path d="M0 {top - float(y):.2f}V{bottom - float(y):.2f}"/>'
+               f'<rect x="-19" y="{-36 + label_offset}" width="38" height="24" rx="5"/>'
+               f'<text x="0" y="{-19 + label_offset}" text-anchor="middle">{records[-1]["score"]}</text></g>')
+    return f"""<svg class="trend-chart" viewBox="0 0 949 300" role="img"
+      aria-label="World Temperature, {date_range(records)}. Exact values are in the daily readings table.">
+      {bands}<g class="trend-grid">{grid}{''.join(dates)}</g>
+      <polyline class="trend-line" points="{' '.join(points)}"/>
+      {callout}{''.join(dots)}</svg>"""
+
+
+def chart_view(records, name):
+    count = sum(row["edition"] for row in records)
+    return f"""<div data-chart-view="{name}" {"hidden" if name != "all" else ""}>
+      <p class="trend-dates">{date_range(records)}</p>
+      <div class="trend-scroll">{chart_svg(records)}</div>
+      <p class="trend-legend"><span><i class="trend-point" aria-hidden="true"></i> Published edition ({count})</span>
+      <span><i class="trend-point trend-point-open" aria-hidden="true"></i> Reconstructed ({len(records)-count})</span></p></div>"""
+
+
+def trend_chart(records):
+    if not records:
+        return """<details class="dash-panel" open><summary class="panel-summary">
+          <span>World Temperature</span></summary><p class="panel-empty">No historical readings yet.</p></details>"""
+    latest = calendar_date.fromisoformat(records[-1]["date"])
+    views = [chart_view(records, "all")]
+    for length in (7, 30):
+        subset = [row for row in records if (latest - calendar_date.fromisoformat(row["date"])).days < length]
+        views.append(f'<template data-range="{length}">{chart_view(subset, str(length))}</template>')
+    rows = []
+    for row in reversed(records):
+        date = row["date"]
+        day = display_day(date)
+        day = f'<a href="/{date}/index.html">{day}</a>' if row["edition"] else day
+        basis = "Published edition" if row["edition"] else "Reconstructed"
+        rows.append(f'<tr id="reading-{date}"><th scope="row">{day}</th><td>{row["score"]}</td><td>{basis}</td></tr>')
+    return f"""<details class="dash-panel trend-panel" id="temperature-trend" open>
+      <summary class="panel-summary"><span><strong>World Temperature</strong><span class="panel-subtitle"> · Historical trend</span></span></summary>
+      <div class="trend-body">
+        <div class="trend-ranges" role="group" aria-label="History range" hidden>
+          <button type="button" data-set-range="7" aria-pressed="false">7D</button>
+          <button type="button" data-set-range="30" aria-pressed="false">30D</button>
+          <button type="button" data-set-range="all" aria-pressed="true">All</button>
+        </div>
+        {''.join(views)}
         <details class="trend-details">
           <summary>View daily readings</summary>
           <table><thead><tr><th scope="col">Date</th><th scope="col">Score / 100</th><th scope="col">Basis</th></tr></thead>
-          <tbody>{"".join(reversed(rows))}</tbody></table>
+          <tbody>{''.join(rows)}</tbody></table>
         </details>
-      </div>
-    </section>"""
+      </div></details>"""
+
+
+def archive_strip(records, current):
+    chips = []
+    for row in records:
+        iso = row["date"]
+        day = calendar_date.fromisoformat(iso)
+        basis = "Published edition" if row["edition"] else "Reconstructed"
+        link = f"/{iso}/index.html" if row["edition"] else f"#reading-{iso}"
+        active = ' aria-current="date"' if current == iso else ""
+        chips.append(
+            f'<li><a class="archive-chip" href="{link}" data-reading="{iso}" data-day="{display_day(iso)}" '
+            f'data-basis="{basis}" data-score="{row["score"]}" data-level="{temperature_label(row["score"])}"'
+            f'{active} aria-label="{display_day(iso)}, {row["score"]} out of 100, {basis}">'
+            f'<time datetime="{iso}"><span>{day:%b}</span> {day.day}</time><strong>{row["score"]}</strong></a></li>'
+        )
+    dates = (f'<button type="button" class="archive-arrow" data-scroll="-1" aria-label="Show earlier dates" hidden>‹</button>'
+             f'<ol class="archive-chips">{"".join(chips)}</ol>'
+             f'<button type="button" class="archive-arrow" data-scroll="1" aria-label="Show later dates" hidden>›</button>') if chips else ""
+    return f"""<details class="dash-panel archive-panel" id="edition-archive" open>
+      <summary class="panel-summary"><span><strong>Archive</strong><span class="panel-subtitle"> · Daily editions</span>
+      <small>{date_range(records)}</small></span></summary>
+      <div class="archive-body">{dates}<a class="archive-all" href="/archive/index.html">All editions</a></div>
+    </details>"""
+
+
+def feature_signals(signals):
+    ids = story_ids(signals)
+    items = []
+    for channel, label in CHANNELS.items():
+        if channel not in signals:
+            continue
+        entry = signals[channel]
+        title = html.escape(entry.get("title") or entry["signal"])
+        description = html.escape(entry.get("description") or label)
+        items.append(
+            f'<li><a href="#{ids[entry["headline"]]}"><span class="signal-icon" aria-hidden="true">{CHANNEL_ICONS[channel]}</span>'
+            f'<span><strong>{title}</strong><span class="signal-description">{description}</span></span>'
+            '<span class="signal-arrow" aria-hidden="true"></span></a></li>'
+        )
+    body = f'<ul>{"".join(items)}</ul>' if items else '<p class="panel-empty">No featured signals for this edition.</p>'
+    return f"""<details class="dash-panel state-signals" id="key-signals" open>
+      <summary class="panel-summary"><span>Key signals</span></summary>{body}</details>"""
 
 
 def render_global_state(date, signals):
@@ -160,63 +235,59 @@ def render_global_state(date, signals):
     current = next((entry for entry in reversed(records)
                     if entry["date"] == date and entry["edition"]), None)
     score = current["score"] if current else None
-    score_markup = '<div class="state-reading"><strong>—</strong></div><p>Awaiting reading</p>'
-    if score is not None:
-        level = next(label for minimum, label, _ in reversed(BANDS) if score >= minimum)
-        score_markup = (f'<div class="state-reading"><strong>{score}</strong><span> / 100</span></div>'
-                        f'<p>{level}</p>')
-
-    ids = story_ids(signals)
-    items = []
-    for channel, label in CHANNELS.items():
-        if channel not in signals:
-            continue
-        entry = signals[channel]
-        signal = html.escape(entry["signal"])
-        anchor = ids[entry["headline"]]
-        items.append(
-            f'<li><a href="#{anchor}"><span class="signal-meta">{html.escape(label)}</span>'
-            f'<span class="signal-headline">{signal}<span class="signal-arrow" aria-hidden="true"></span></span></a></li>'
-        )
-    signal_list = f'<ul>{"".join(items)}</ul>' if items else (
-        '<p class="state-empty">This edition has no featured signals.</p>'
-    )
+    previous = records[-2] if current and len(records) > 1 else None
+    change = ""
+    if previous:
+        delta = score - previous["score"]
+        direction, signed = ("down", f"−{abs(delta)}") if delta < 0 else ("up", f"+{delta}") if delta else ("flat", "0")
+        qualifier = " (reconstructed)" if not previous["edition"] else ""
+        change = f'<p class="state-change {direction}"><strong>{signed}</strong> vs {display_day(previous["date"])}{qualifier}</p>'
+    edition_link = f'/{date}/index.html'
     return f"""<section class="global-state" id="global-state" aria-labelledby="global-state-title">
-    <div class="state-hero">
-      <div class="state-intro">
-        <p class="state-eyebrow"><span aria-hidden="true"></span> Global State</p>
-        <h2 id="global-state-title">World<br> Temperature</h2>
-        <p>How much pressure is showing up in the news?</p>
-      </div>
-      <div class="state-gauge">
-        {dial(score)}
-        {score_markup}
+    <div class="state-banner">
+      <div class="state-intro"><h2 id="global-state-title">Global State</h2><p>Pressure in the world’s news.</p></div>
+      <div class="state-score">{reading(score)}{change}</div>
+      {gauge(score)}
+      <div class="state-planet" aria-hidden="true"></div>
+    </div>
+    <h3 class="history-heading">History</h3>
+    <div class="history-grid">
+      {trend_chart(records)}
+      <div class="history-side">
+        <details class="dash-panel edition-reading">
+          <summary class="panel-summary"><span><strong data-edition-date>{display_day(date)}</strong>
+            <span data-edition-basis> · Published edition</span>
+            <small data-edition-score>{f'{score} / 100 · {temperature_label(score)}' if score is not None else 'Awaiting reading'}</small></span></summary>
+          <div class="edition-reading-body" aria-live="polite"><p data-edition-note>Reading for this edition.</p>
+          <a data-edition-link href="{edition_link}">Open edition</a></div>
+        </details>
+        {feature_signals(signals)}
       </div>
     </div>
-    <aside class="state-signals" aria-labelledby="state-signals-title">
-      <div class="state-signals-head"><h3 id="state-signals-title">Key signals</h3></div>
-      {signal_list}
-    </aside>
-    {trend_chart(records)}
-    <details class="state-method">
-      <summary>About World Temperature</summary>
-      <div>
-        <p>World Temperature is an AI-calculated Hive Buzz Newz index of pressure in the news.
-        The chart labels method v1 readings by their basis. A filled point uses a published edition.
-        An open point is a reconstruction from a day without an edition.</p>
-        <p>The scale runs from 0 to 100. Bands begin at 0 (calm), 20 (mild), 40 (warm),
-        60 (hot), and 80 (boiling).</p>
-        <p>Key signals link to reporting in this edition. Earth artwork: Codex Hive Labs.</p>
-      </div>
+    {archive_strip(records, date)}
+    <div class="dashboard-footer"><details class="state-method">
+      <summary>Method v1 · AI-calculated news-pressure index</summary>
+      <div><p>Scores run from 0 to 100 and describe pressure in the news. Filled chart points use published editions.
+      Open chart points are reconstructions from days without editions. The change above compares the previous recorded reading.</p>
+      <p>Earth imagery: NASA EPIC via Codex Hive Labs.</p></div>
     </details>
-    </section>"""
+    <a class="dashboard-labs" href="https://codex-hive.com" aria-label="Codex Hive Labs"><img
+      src="/chl-assets/codex-hive-mark-2x.webp" width="23" height="28" alt="" decoding="async"></a>
+    </div></section>"""
 
 
-def edition_navigation():
-    return """<nav class="edition-nav wrap" aria-label="Edition sections">
-      <a href="#global-state">Global State</a>
-      <a href="#stories">Stories</a>
-      <a href="#rumors">Rumors</a>
-      <a href="#watch">What to watch</a>
-      <a href="/archive/index.html">Archive</a>
-    </nav>"""
+def edition_masthead(date):
+    day = calendar_date.fromisoformat(date)
+    return f"""<header class="edition-masthead" id="edition-top"><div class="wrap masthead-inner">
+      <div class="masthead-brand">
+        <a class="brand-mark" href="/" aria-label="Hive Buzz Newz home"><img src="/assets/hive-buzz-icon-320.png"
+          width="56" height="56" alt="" decoding="async"></a>
+        <div><h1><a href="/">Hive Buzz <span>Newz</span></a></h1>
+          <a class="masthead-parent" href="https://codex-hive.com">By Codex Hive Labs</a></div>
+      </div>
+      <nav class="edition-nav" aria-label="Edition sections">
+        <a href="#global-state" aria-current="location">Global State</a><a href="#stories">Stories</a><a href="#rumors">Rumors</a>
+        <a href="#watch">What to watch</a><a href="#edition-archive">Archive</a>
+      </nav>
+      <time class="masthead-date" datetime="{date}">{day:%B} {day.day}, {day.year}</time>
+    </div></header>"""

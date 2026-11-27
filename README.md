@@ -29,5 +29,6 @@ edition date.
 
 To feature sourced stories beside the gauge, add a `site/signals/YYYY-MM-DD.json`
 file using an existing file as a template. Each signal must match one story
-headline exactly. The Earth artwork is from the
-[Codex Hive Labs homepage](https://github.com/voineagvalentin5/codex-hive-site/blob/main/docs/assets/hero/globe.webp).
+headline exactly. Optional `title` and `description` fields set the signal card
+copy. The dashboard uses the NASA EPIC Earth image from the
+[Codex Hive Labs hub](https://github.com/voineagvalentin5/codex-hive-site/blob/main/docs/assets/hub/earth-epic.webp).

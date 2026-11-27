@@ -5,7 +5,7 @@ out/archive/index.html, and copies the site's assets into out/."""
 import os, glob, shutil, re
 import json, sys, html, datetime
 from urllib.parse import urlparse
-from global_state import edition_navigation, read_signals, render_global_state, story_ids
+from global_state import edition_masthead, read_signals, render_global_state, story_ids
 e = lambda s: html.escape(str(s or ""))
 def link(url, text):
     u = urlparse(url or "")
@@ -90,20 +90,18 @@ def render(d, nav):
     page = f'''<!doctype html><html lang="en"><head><meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Hive Buzz Newz · {e(d["date"])}</title><link rel="stylesheet" href="/style.css">
-    <link rel="stylesheet" href="/global-state.css">
+    <link rel="stylesheet" href="/global-state.css?v=2"><script src="/global-state.js?v=2" defer></script>
     <link rel="icon" href="/favicon.ico" sizes="any">
     <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png">
     <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon-192.png">
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">{GA_TAG}</head><body class="newz-edition">
-    {chl_nav(_bc_short(d['date']), '/' + d['date'] + '/index.html')}<header><div class="wrap brand"><a class="brand-mark" href="/"><img src="/assets/hive-buzz-icon-320.png" srcset="/assets/hive-buzz-icon-320.png 320w, /assets/hive-buzz-icon.png 640w" sizes="(max-width:600px) 56px, 80px" width="80" height="80" alt="Hive Buzz" decoding="async"></a><div class="brand-text"><h1>Hive Buzz <span>Newz</span></h1></div>
-    <p class="date"><time datetime="{e(d["date"])}">{fmt(d["date"])}</time></p></div></header>
-    {edition_navigation()}
+    {edition_masthead(d["date"])}
     <main class="wrap">
     {render_global_state(d["date"], signals)}
     <p class="disclosure"><strong>AI-written.</strong> {e(d.get("ai_disclosure"))}</p>
-    <section id="stories"><h2>Today's stories</h2><p class="legend"><span class="badge confirmed">Confirmed</span> reported by established outlets · <span class="badge developing">Developing</span> details still emerging</p>{"".join(out)}</section>
-    <section id="rumors" class="rumors"><h2>Hive Rumors</h2><p class="legend">Unverified claims seen online. Listed for transparency, not as fact, and updated as Confirmed or Debunked.</p><div class="grid">{rum}</div></section>
-    <section id="watch"><h2>What to watch</h2><ul class="cal">{cal}</ul></section>
+    <details class="dash-panel news-panel" id="stories" open><summary class="panel-summary"><h2>Today's stories</h2></summary><div class="news-body"><p class="legend"><span class="badge confirmed">Confirmed</span> reported by established outlets · <span class="badge developing">Developing</span> details still emerging</p>{"".join(out)}</div></details>
+    <details class="dash-panel news-panel rumor-panel" id="rumors" open><summary class="panel-summary"><h2>Hive Rumors</h2></summary><div class="news-body"><p class="legend">Unverified claims seen online. Listed for transparency, not as fact, and updated as Confirmed or Debunked.</p><div class="grid">{rum}</div></div></details>
+    <details class="dash-panel news-panel" id="watch" open><summary class="panel-summary"><h2>What to watch</h2></summary><div class="news-body"><ul class="cal">{cal}</ul></div></details>
     </main><footer class="wrap">{nav}<p>Hive Buzz Newz · codex-hive.com</p></footer></body></html>'''
     return page
 
@@ -153,7 +151,7 @@ def main():
     open(os.path.join(OUT,"archive","index.html"),"w").write(arch)
     # Brand assets live at the site root (next to this file's parent: the published tree).
     root = os.path.dirname(HERE)
-    for name in ("style.css", "global-state.css", "favicon.ico", "apple-touch-icon.png"):
+    for name in ("style.css", "global-state.css", "global-state.js", "favicon.ico", "apple-touch-icon.png"):
         shutil.copy(os.path.join(root, name), os.path.join(OUT, name))
     for name in ("assets", "chl-assets"):
         shutil.copytree(os.path.join(root, name), os.path.join(OUT, name), dirs_exist_ok=True)

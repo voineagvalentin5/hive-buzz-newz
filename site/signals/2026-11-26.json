@@ -1,18 +1,26 @@
 {
   "conflict": {
     "headline": "Sudan: RSF drone strikes kill at least 14 to 19 in Blue Nile state",
-    "signal": "Deadly strikes and mass displacement in Sudan"
+    "signal": "Deadly strikes and mass displacement in Sudan",
+    "title": "Sudan displacement",
+    "description": "Deadly strikes were reported as more than 100,000 people fled to Damazin."
   },
   "economy": {
     "headline": "US proposes new tariffs on 14 economies over 'excess capacity'; Asia pushes back",
-    "signal": "US tariff proposals draw responses across Asia"
+    "signal": "US tariff proposals draw responses across Asia",
+    "title": "US tariff proposals",
+    "description": "Proposed US tariffs on 14 economies drew pushback across Asia."
   },
   "environment": {
     "headline": "Brazil: storms kill six in Paraná as a cyclone threatens more",
-    "signal": "Deadly storms displace thousands in Paraná"
+    "signal": "Deadly storms displace thousands in Paraná",
+    "title": "Paraná storms",
+    "description": "Deadly storms forced more than 2,600 people from their homes."
   },
   "institutions": {
     "headline": "EU summit opens with leaders far apart on the 2028-2034 budget; Macron defends the farm envelope",
-    "signal": "EU leaders remain divided on the long-term budget"
+    "signal": "EU leaders remain divided on the long-term budget",
+    "title": "EU budget divisions",
+    "description": "Leaders remained divided as talks opened on the EU’s long-term budget."
   }
 }
