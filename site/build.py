@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 """Hive Buzz Newz build. Daily: python3 build.py ../YYYY-MM-DD.json
 Rebuilds out/<day>/index.html for every ../*.json (plus the given file), out/index.html (latest),
-out/archive/index.html, and copies style.css into out/."""
+out/archive/index.html, and copies the site's assets into out/."""
 import os, glob, shutil, re
 import json, sys, html, datetime
 from urllib.parse import urlparse
+from global_state import edition_navigation, read_signals, render_global_state, story_ids
 e = lambda s: html.escape(str(s or ""))
 def link(url, text):
     u = urlparse(url or "")
@@ -58,19 +59,24 @@ CHL_NAV = chl_nav()
 
 HERE=os.path.dirname(os.path.abspath(__file__)); DATA=os.path.dirname(HERE); OUT=os.path.join(HERE,"out")
 def nav_html(prev, nxt):
-    p=f'<a href="/{prev}/">← {fmt(prev,"%b %-d, %Y")}</a>' if prev else '<span class="off">← Earlier</span>'
-    n=f'<a href="/{nxt}/">{fmt(nxt,"%b %-d, %Y")} →</a>' if nxt else '<span class="off">Later →</span>'
-    return f'<nav class="days"><h2>Earlier days</h2><p>{p} · <a href="/archive/">All days (archive)</a> · {n}</p></nav>'
+    p=f'<a href="/{prev}/index.html">← {fmt(prev,"%b %-d, %Y")}</a>' if prev else '<span class="off">← Earlier</span>'
+    n=f'<a href="/{nxt}/index.html">{fmt(nxt,"%b %-d, %Y")} →</a>' if nxt else '<span class="off">Later →</span>'
+    return f'<nav class="days"><h2>Earlier days</h2><p>{p} · <a href="/archive/index.html">All days (archive)</a> · {n}</p></nav>'
 def render(d, nav):
+    stories = d.get("stories", [])
+    signals = read_signals(d["date"], [story.get("headline") for story in stories])
+    ids = story_ids(signals)
     topics = {}
-    for s in d.get("stories", []): topics.setdefault(s.get("topic") or "World", []).append(s)
+    for s in stories: topics.setdefault(s.get("topic") or "World", []).append(s)
     out = []
     for t, ss in topics.items():
         out.append(f'<h3 class="topic">{e(t)}</h3><div class="grid">')
         for s in ss:
             st = e(s.get("status"))
             srcs = " · ".join(link(x.get("url"), x.get("name")) for x in s.get("sources", []))
-            out.append(f'<article class="card"><span class="badge {st.lower()}">{st}</span>'
+            anchor = ids.get(s.get("headline"))
+            story_id = f' id="{anchor}"' if anchor else ""
+            out.append(f'<article class="card"{story_id}><span class="badge {st.lower()}">{st}</span>'
                        f'<h4>{e(s.get("headline"))}</h4><p>{e(s.get("summary"))}</p>'
                        f'<p class="src">Sources: {srcs or "<em>none listed</em>"}</p></article>')
         out.append('</div>')
@@ -84,17 +90,20 @@ def render(d, nav):
     page = f'''<!doctype html><html lang="en"><head><meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Hive Buzz Newz · {e(d["date"])}</title><link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="/global-state.css">
     <link rel="icon" href="/favicon.ico" sizes="any">
     <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png">
     <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon-192.png">
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">{GA_TAG}</head><body>
-    {chl_nav(_bc_short(d['date']), '/' + d['date'] + '/')}<header><div class="wrap brand"><a class="brand-mark" href="/"><img src="/assets/hive-buzz-icon-320.png" srcset="/assets/hive-buzz-icon-320.png 320w, /assets/hive-buzz-icon.png 640w" sizes="(max-width:600px) 56px, 80px" width="80" height="80" alt="Hive Buzz" decoding="async"></a><div class="brand-text"><p class="kicker"><a href="https://codex-hive.com">A Codex Hive division</a></p><h1>Hive Buzz <span>Newz</span></h1>
-    <p class="date">{fmt(d["date"])}</p></div></div></header>
-    <div class="disclosure wrap"><strong>AI-written.</strong> {e(d.get("ai_disclosure"))}</div>
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">{GA_TAG}</head><body class="newz-edition">
+    {chl_nav(_bc_short(d['date']), '/' + d['date'] + '/index.html')}<header><div class="wrap brand"><a class="brand-mark" href="/"><img src="/assets/hive-buzz-icon-320.png" srcset="/assets/hive-buzz-icon-320.png 320w, /assets/hive-buzz-icon.png 640w" sizes="(max-width:600px) 56px, 80px" width="80" height="80" alt="Hive Buzz" decoding="async"></a><div class="brand-text"><h1>Hive Buzz <span>Newz</span></h1></div>
+    <p class="date"><time datetime="{e(d["date"])}">{fmt(d["date"])}</time></p></div></header>
+    {edition_navigation()}
     <main class="wrap">
-    <section><h2>Today's stories</h2><p class="legend"><span class="badge confirmed">Confirmed</span> reported by established outlets · <span class="badge developing">Developing</span> details still emerging</p>{"".join(out)}</section>
-    <section class="rumors"><h2>Hive Rumors</h2><p class="legend">Unverified claims seen online. Listed for transparency, not as fact, and updated as Confirmed or Debunked.</p><div class="grid">{rum}</div></section>
-    <section><h2>What to watch</h2><ul class="cal">{cal}</ul></section>
+    {render_global_state(d["date"], signals)}
+    <p class="disclosure"><strong>AI-written.</strong> {e(d.get("ai_disclosure"))}</p>
+    <section id="stories"><h2>Today's stories</h2><p class="legend"><span class="badge confirmed">Confirmed</span> reported by established outlets · <span class="badge developing">Developing</span> details still emerging</p>{"".join(out)}</section>
+    <section id="rumors" class="rumors"><h2>Hive Rumors</h2><p class="legend">Unverified claims seen online. Listed for transparency, not as fact, and updated as Confirmed or Debunked.</p><div class="grid">{rum}</div></section>
+    <section id="watch"><h2>What to watch</h2><ul class="cal">{cal}</ul></section>
     </main><footer class="wrap">{nav}<p>Hive Buzz Newz · codex-hive.com</p></footer></body></html>'''
     return page
 
@@ -102,42 +111,52 @@ def main():
     files={}
     for f in glob.glob(os.path.join(DATA,"*.json"))+sys.argv[1:]:
         if re.fullmatch(r"\d{4}-\d{2}-\d{2}\.json", os.path.basename(f)): files[os.path.basename(f)[:10]]=f
-    days=sorted(files)
-    if not days: sys.exit("no YYYY-MM-DD.json found")
+    if not files: sys.exit("no YYYY-MM-DD.json found")
+    published = {
+        os.path.basename(os.path.dirname(path)): path
+        for path in glob.glob(os.path.join(DATA, "????-??-??", "index.html"))
+        if re.fullmatch(r"\d{4}-\d{2}-\d{2}", os.path.basename(os.path.dirname(path)))
+    }
+    days = sorted(published.keys() | files.keys())
     os.makedirs(OUT,exist_ok=True)
     for i,day in enumerate(days):
-        d=json.load(open(files[day]))
-        page=render(d, nav_html(days[i-1] if i else None, days[i+1] if i+1<len(days) else None))
+        if day in files:
+            with open(files[day], encoding="utf-8") as source:
+                d = json.load(source)
+            if d["date"] != day:
+                sys.exit(f"{files[day]}: edition date must match the filename")
+            page = render(d, nav_html(days[i-1] if i else None, days[i+1] if i+1<len(days) else None))
+        else:
+            with open(published[day], encoding="utf-8") as source:
+                page = source.read()
         os.makedirs(os.path.join(OUT,day),exist_ok=True)
-        open(os.path.join(OUT,day,"index.html"),"w").write(page)
-        if day==days[-1]: open(os.path.join(OUT,"index.html"),"w").write(page)
-    items="".join(f'<li><time>{fmt(x,"%b %-d")}</time><span><a href="/{x}/">{fmt(x)}</a></span></li>' for x in reversed(days))
+        with open(os.path.join(OUT, day, "index.html"), "w", encoding="utf-8") as target:
+            target.write(page)
+        if day == days[-1]:
+            with open(os.path.join(OUT, "index.html"), "w", encoding="utf-8") as target:
+                target.write(page)
+    items="".join(f'<li><time>{fmt(x,"%b %-d")}</time><span><a href="/{x}/index.html">{fmt(x)}</a></span></li>' for x in reversed(days))
     arch=f'''<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Hive Buzz Newz · Archive</title><link rel="stylesheet" href="/style.css">
+<link rel="stylesheet" href="/global-state.css">
 <link rel="icon" href="/favicon.ico" sizes="any">
 <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon-192.png">
-<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">{GA_TAG}</head><body>
-{chl_nav('Archive', '/archive/')}<header><div class="wrap brand"><a class="brand-mark" href="/"><img src="/assets/hive-buzz-icon-320.png" srcset="/assets/hive-buzz-icon-320.png 320w, /assets/hive-buzz-icon.png 640w" sizes="(max-width:600px) 56px, 80px" width="80" height="80" alt="Hive Buzz" decoding="async"></a><div class="brand-text"><p class="kicker"><a href="https://codex-hive.com">A Codex Hive division</a></p><h1>Hive Buzz <span>Newz</span></h1>
-<p class="date">Archive · every day we published, newest first</p></div></div></header>
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">{GA_TAG}</head><body class="newz-edition">
+{chl_nav('Archive', '/archive/index.html')}<header><div class="wrap brand"><a class="brand-mark" href="/"><img src="/assets/hive-buzz-icon-320.png" srcset="/assets/hive-buzz-icon-320.png 320w, /assets/hive-buzz-icon.png 640w" sizes="(max-width:600px) 56px, 80px" width="80" height="80" alt="Hive Buzz" decoding="async"></a><div class="brand-text"><h1>Hive Buzz <span>Newz</span></h1></div>
+<p class="date">Edition archive</p></div></header>
 <main class="wrap"><section><h2>All days</h2><ul class="cal">{items}</ul>
 <p class="legend"><a href="/">← Today's edition</a></p></section></main>
 <footer class="wrap"><p>Hive Buzz Newz · codex-hive.com</p></footer></body></html>'''
     os.makedirs(os.path.join(OUT,"archive"),exist_ok=True)
     open(os.path.join(OUT,"archive","index.html"),"w").write(arch)
-    shutil.copy(os.path.join(HERE,"style.css"),os.path.join(OUT,"style.css"))
     # Brand assets live at the site root (next to this file's parent: the published tree).
-    # When this script is used as a renderer only, the caller already has assets in place.
-    # When main() writes a private out dir, copy them so favicons and the masthead icon resolve.
     root = os.path.dirname(HERE)
-    def _copy_asset(src, dest):
-        if os.path.isfile(src):
-            os.makedirs(os.path.dirname(dest), exist_ok=True)
-            shutil.copy(src, dest)
-    _copy_asset(os.path.join(root,"favicon.ico"), os.path.join(OUT,"favicon.ico"))
-    _copy_asset(os.path.join(root,"apple-touch-icon.png"), os.path.join(OUT,"apple-touch-icon.png"))
-    for name in ("hive-buzz-icon.png","hive-buzz-icon-320.png","favicon-32.png","favicon-192.png"):
-        _copy_asset(os.path.join(root,"assets",name), os.path.join(OUT,"assets",name))
+    for name in ("style.css", "global-state.css", "favicon.ico", "apple-touch-icon.png"):
+        shutil.copy(os.path.join(root, name), os.path.join(OUT, name))
+    for name in ("assets", "chl-assets"):
+        shutil.copytree(os.path.join(root, name), os.path.join(OUT, name), dirs_exist_ok=True)
     print("built",len(days),"day(s); latest",days[-1],"->",OUT)
-main()
+if __name__ == "__main__":
+    main()

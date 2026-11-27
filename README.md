@@ -13,5 +13,21 @@ short_description: Daily source-checked news from Codex Hive
 
 Daily source-checked news editions from Codex Hive Labs.
 
-This Space hosts the public static site previously at `hive-buzz-newz.netlify.app`.
-Each dated folder is one edition; open it as `/2026-11-09/index.html` (HF static does not serve directory indexes). The root `/` redirects to today’s `index.html`.
+The public static site is [newz.codex-hive.com](https://newz.codex-hive.com).
+Each dated folder contains an edition. The root `index.html` serves the latest
+edition and `archive/index.html` lists all published editions.
+
+Run `python3 site/build.py /path/to/YYYY-MM-DD.json` to render a daily edition
+into `site/out/`, together with the existing archive and shared assets.
+
+World Temperature readings live in `site/world-temperature.json` under
+method v1. The original Nov 10–26 series is transcribed from the supplied
+chart. Add a dated score from the same method and set `edition` to `true` for a
+published edition or `false` for a reconstruction. An edition without a
+dated reading shows an empty gauge. The trend displays readings through the
+edition date.
+
+To feature sourced stories beside the gauge, add a `site/signals/YYYY-MM-DD.json`
+file using an existing file as a template. Each signal must match one story
+headline exactly. The Earth artwork is from the
+[Codex Hive Labs homepage](https://github.com/voineagvalentin5/codex-hive-site/blob/main/docs/assets/hero/globe.webp).

@@ -1,0 +1,19 @@
+[
+  {"date":"2026-11-10","score":23,"edition":true},
+  {"date":"2026-11-11","score":32,"edition":true},
+  {"date":"2026-11-12","score":39,"edition":true},
+  {"date":"2026-11-13","score":36,"edition":false},
+  {"date":"2026-11-14","score":35,"edition":true},
+  {"date":"2026-11-15","score":41,"edition":true},
+  {"date":"2026-11-16","score":31,"edition":false},
+  {"date":"2026-11-17","score":45,"edition":false},
+  {"date":"2026-11-18","score":35,"edition":false},
+  {"date":"2026-11-19","score":47,"edition":true},
+  {"date":"2026-11-20","score":34,"edition":true},
+  {"date":"2026-11-21","score":51,"edition":true},
+  {"date":"2026-11-22","score":46,"edition":true},
+  {"date":"2026-11-23","score":39,"edition":true},
+  {"date":"2026-11-24","score":39,"edition":false},
+  {"date":"2026-11-25","score":50,"edition":false},
+  {"date":"2026-11-26","score":43,"edition":true}
+]
