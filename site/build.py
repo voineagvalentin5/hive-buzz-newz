@@ -95,6 +95,7 @@ def render(d, nav):
     <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png">
     <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon-192.png">
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">{GA_TAG}</head><body class="newz-edition">
+    {chl_nav(_bc_short(d['date']), '/' + d['date'] + '/index.html')}
     {edition_masthead(d["date"])}
     <main class="wrap">
     {render_global_state(d["date"], signals)}
@@ -103,6 +104,8 @@ def render(d, nav):
     <details class="dash-panel news-panel rumor-panel" id="rumors"><summary class="panel-summary"><h2>Hive Rumors</h2></summary><div class="news-body"><p class="legend">Unverified claims seen online. Listed for transparency, not as fact, and updated as Confirmed or Debunked.</p><div class="grid">{rum}</div></div></details>
     <details class="dash-panel news-panel" id="watch"><summary class="panel-summary"><h2>What to watch</h2></summary><div class="news-body"><ul class="cal">{cal}</ul></div></details>
     </main><footer class="wrap">{nav}<p>Hive Buzz Newz · codex-hive.com</p></footer></body></html>'''
+    if "<!-- chl-bc -->" not in page or 'aria-label="Breadcrumb"' not in page:
+        raise SystemExit("edition page is missing the Codex Hive Labs breadcrumb nav")
     return page
 
 def main():

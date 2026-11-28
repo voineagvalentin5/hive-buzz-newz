@@ -13,7 +13,7 @@ body.newz-edition {
 .newz-edition .wrap, .newz-edition .bc__in { max-width: 1680px; padding-inline: clamp(14px, 2.05vw, 35px); }
 .newz-edition .bc { background: #10171d; border-color: #453c2b; }
 .newz-edition :focus-visible { outline: 2px solid #ffe0a3; outline-offset: 3px; }
-.newz-edition :target { scroll-margin-top: 18px; }
+.newz-edition :target { scroll-margin-top: calc(var(--chl-nav-h) + 16px); }
 .newz-edition [hidden] { display: none !important; }
 .newz-edition header { padding-block: 12px; border-bottom: 1px solid #997549; background: #0d141c; }
 .newz-edition h1 { margin: 0; font: 600 clamp(1.5rem, 2.3vw, 2.25rem)/1.1 var(--serif); }
