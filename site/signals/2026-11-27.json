@@ -1,0 +1,26 @@
+{
+  "conflict": {
+    "headline": "Ukraine: Russian drones kill six and cut power in six regions; Zelenskyy warns of a mass strike",
+    "signal": "Russian strikes kill six and cut power in Ukraine",
+    "title": "Ukraine strikes",
+    "description": "Russian attacks killed six people and cut power in six regions, as Zelenskyy warned of a mass strike."
+  },
+  "economy": {
+    "headline": "Oil heads for its first weekly gain in four weeks; US stocks reopen for a half day",
+    "signal": "Oil heads for its first weekly gain in four weeks",
+    "title": "Oil weekly gain",
+    "description": "Brent rose as US markets reopened for a shortened Friday session."
+  },
+  "environment": {
+    "headline": "Thanksgiving storm cuts power to nearly 1 million and disrupts flights",
+    "signal": "A Thanksgiving storm cuts power to nearly a million homes",
+    "title": "Thanksgiving storm",
+    "description": "A powerful storm cut power to nearly 1 million US customers and disrupted holiday flights."
+  },
+  "institutions": {
+    "headline": "EU summit ends a day early without a budget deal; talks move to Dec 17-18",
+    "signal": "EU leaders end their budget summit early with no deal",
+    "title": "EU budget talks",
+    "description": "EU leaders broke off budget talks a day early and will try again on Dec 17-18."
+  }
+}

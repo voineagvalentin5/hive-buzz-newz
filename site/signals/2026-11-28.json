@@ -1,0 +1,26 @@
+{
+  "conflict": {
+    "headline": "Ukraine: Nizhyn strike toll rises to seven as Russia and Ukraine trade mass drone attacks",
+    "signal": "The Nizhyn strike toll rises as mass drone attacks continue",
+    "title": "Ukraine drone attacks",
+    "description": "The death toll from a strike on Nizhyn rose to seven as Russia and Ukraine traded mass drone attacks."
+  },
+  "economy": {
+    "headline": "France slips into technical recession after GDP is revised down",
+    "signal": "France slips into a technical recession",
+    "title": "France recession",
+    "description": "INSEE revised third-quarter GDP down to a 0.2% contraction, putting France in a technical recession."
+  },
+  "environment": {
+    "headline": "Vietnam: nearly 1,700 homes flooded as heavy rain hits the centre",
+    "signal": "Heavy rain floods nearly 1,700 homes in central Vietnam",
+    "title": "Vietnam floods",
+    "description": "Nearly 1,700 homes in Quang Ngai were flooded as authorities ordered emergency measures from Hue to Khanh Hoa."
+  },
+  "institutions": {
+    "headline": "Albania: Independence Day protest in Tirana turns violent outside ministries",
+    "signal": "An Independence Day protest in Tirana turns violent",
+    "title": "Tirana protest",
+    "description": "Masked protesters threw Molotov cocktails at ministries after a large Independence Day rally in Tirana."
+  }
+}
